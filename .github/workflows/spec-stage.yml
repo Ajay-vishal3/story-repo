@@ -1,0 +1,22 @@
+name: Spec stage
+
+# Fires when a label is added to an issue. Issue-event workflows always run from the
+# DEFAULT branch, so this file must be merged to main before it works.
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  run-spec-agent:
+    if: github.event.label.name == 'state:ready-for-spec'
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      models: read
+    # `uses:` cannot contain variables. Replace YOUR_GITHUB_USERNAME with your real username.
+    uses: Ajay-vishal3/agents-repo/.github/workflows/spec-agent.yml@main
+    with:
+      issue-number: ${{ github.event.issue.number }}
+      issue-title: ${{ github.event.issue.title }}
+      agents-repo: ${{ github.repository_owner }}/agents-repo
