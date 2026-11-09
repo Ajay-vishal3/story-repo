@@ -17,4 +17,4 @@ jobs:
       issue-title: ${{ github.event.issue.title }}
       agents-repo: Ajay-vishal3/agents-repo
       agents-ref: main
-      target-repo: Ajay-vishal3/dummy-repo
+      target-repo: Ajay-vishal3/Vehicle-FC-monitoring-system
