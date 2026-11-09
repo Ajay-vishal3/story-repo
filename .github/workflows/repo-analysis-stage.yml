@@ -1,0 +1,20 @@
+name: Repo Analysis Stage (caller)
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  analysis:
+    if: github.event.label.name == 'state:spec-approved'
+    permissions:
+      contents: write
+      issues: write
+      copilot-requests: write
+    uses: Ajay-vishal3/agents-repo/.github/workflows/repo-analysis-agent.yml@main
+    with:
+      issue-number: ${{ github.event.issue.number }}
+      issue-title: ${{ github.event.issue.title }}
+      agents-repo: Ajay-vishal3/agents-repo
+      agents-ref: main
+      target-repo: Ajay-vishal3/dummy-repo
