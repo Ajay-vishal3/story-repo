@@ -1,0 +1,45 @@
+name: Spec Approved (caller)
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+permissions: {}
+
+jobs:
+  approve-gate:
+    if: >-
+      github.event.review.state == 'approved' &&
+      startsWith(github.event.pull_request.head.ref, 'story/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Find the issue and move it to state:spec-approved
+        env:
+          GH_TOKEN: ${{ secrets.LABEL_PAT }}
+          GH_REPO: ${{ github.repository }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "Secret LABEL_PAT is missing in this repo" >&2
+            exit 1
+          fi
+
+          ISSUE=$(printf '%s' "$PR_BODY" | grep -oE '#[0-9]+' | head -n 1 | tr -d '#' || true)
+          if [ -z "$ISSUE" ]; then
+            echo "No issue number (#N) found in the PR body" >&2
+            exit 1
+          fi
+
+          if ! gh issue view "$ISSUE" --json labels --jq '.labels[].name' | grep -qx 'state:spec-drafted'; then
+            echo "Issue #$ISSUE is not in state:spec-drafted, nothing to do"
+            exit 0
+          fi
+
+          gh label create "state:spec-approved" --color 1D76DB 2>/dev/null || true
+
+          # Changed with the PAT on purpose: a label changed by GITHUB_TOKEN would not trigger the next workflow
+          gh issue edit "$ISSUE" \
+            --remove-label "state:spec-drafted" \
+            --add-label "state:spec-approved"
+          echo "Issue #$ISSUE moved to state:spec-approved"
